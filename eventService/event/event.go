@@ -3,6 +3,7 @@ package event
 import (
 	"Monitoring/eventService/model"
 	"Monitoring/eventService/repository"
+	"fmt"
 )
 
 type EventService interface {
@@ -14,21 +15,33 @@ type EventService interface {
 }
 
 type event struct {
+	repository repository.EventRepository
 }
 
 func NewEventService(eventRepo repository.EventRepository) EventService {
-	return event{}
+	return event{
+		repository: eventRepo,
+	}
 }
 
 func (h event) AddEvent(event model.Event) (model.Event, error) {
-
+	fmt.Println(" AddEvent 111")
+	eventAdd, err := h.repository.AddEvent(event)
+	if err != nil {
+		fmt.Println(err)
+	}
+	fmt.Println(eventAdd)
 	return event, nil
 }
 func (h event) GetEventById(id int) (model.Event, error) {
 	return model.Event{}, nil
 }
 func (h event) GetAllEvents() ([]model.Event, error) {
-	return make([]model.Event, 0), nil
+	events, err := h.repository.GetAllEvents()
+	if err != nil {
+		fmt.Println(err)
+	}
+	return events, nil
 }
 func (h event) UpdateEvent(event model.Event) (model.Event, error) {
 	return event, nil

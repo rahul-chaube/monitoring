@@ -1,6 +1,7 @@
 package router
 
 import (
+	"Monitoring/common"
 	"Monitoring/eventService/event"
 	"Monitoring/eventService/handler"
 	"Monitoring/eventService/repository"
@@ -10,19 +11,22 @@ import (
 func SetupRouter() *gin.Engine {
 
 	r := gin.Default()
+	r.RedirectTrailingSlash = false
 	r.GET("/ping", func(c *gin.Context) {
 		c.JSON(200, gin.H{
 			"message": "pong",
 		})
 	})
 
-	eventRepo := repository.NewEventRepository()
+	eventMongoClient := common.MongoConnect("EventRepository")
+	eventRepo := repository.NewEventRepository(eventMongoClient)
 	eventService := event.NewEventService(eventRepo)
 	eventHandler := handler.NewEventHandler(eventService)
 
 	eventGroup := r.Group("/event")
 	{
-		eventGroup.POST("/", eventHandler.AddEvent)
+		eventGroup.POST("", eventHandler.AddEvent)
+		eventGroup.GET("/list", eventHandler.ListEvent)
 	}
 	return r
 }
