@@ -1,6 +1,11 @@
 package router
 
-import "github.com/gin-gonic/gin"
+import (
+	"Monitoring/eventService/event"
+	"Monitoring/eventService/handler"
+	"Monitoring/eventService/repository"
+	"github.com/gin-gonic/gin"
+)
 
 func SetupRouter() *gin.Engine {
 
@@ -10,5 +15,14 @@ func SetupRouter() *gin.Engine {
 			"message": "pong",
 		})
 	})
+
+	eventRepo := repository.NewEventRepository()
+	eventService := event.NewEventService(eventRepo)
+	eventHandler := handler.NewEventHandler(eventService)
+
+	eventGroup := r.Group("/event")
+	{
+		eventGroup.POST("/", eventHandler.AddEvent)
+	}
 	return r
 }
