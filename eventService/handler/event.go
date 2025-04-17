@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
+	"net/http"
 	"time"
 )
 
@@ -19,15 +20,42 @@ func NewEventHandler(event event.EventService) *EventHandler {
 
 func (h *EventHandler) AddEvent(c *gin.Context) {
 	log.Println("Handler Add Event called ")
-	_, err := h.event.AddEvent(model.Event{
-		EventName: "TestEvent",
-		CreatedAt: time.Now().UTC(),
-	})
+	eventName := c.PostForm("eventName")
+	eventType := c.PostForm("eventType")
+	var event model.Event
+	event.EventName = eventName
+	event.EventType = eventType
+
+	form, err := c.MultipartForm()
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse multipart form"})
+		return
+	}
+	uploadedFiles := form.File["files"]
+	var savedFiles []string
+
+	for _, file := range uploadedFiles {
+		path := "uploads/" + file.Filename
+		if err := c.SaveUploadedFile(file, path); err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file: " + file.Filename})
+			return
+		}
+
+		savedFiles = append(savedFiles, file.Filename)
+	}
+
+	event.CreatedAt = time.Now().UTC()
+	event.Files = savedFiles
+
+	ev, err := h.event.AddEvent(event)
 	if err != nil {
 		fmt.Println(err)
 	}
+
 	c.JSON(200, gin.H{
-		"event": "thanks",
+		"message": "Event added successfully",
+		"files":   savedFiles,
+		"data":    ev,
 	})
 }
 

@@ -25,7 +25,6 @@ func NewEventService(eventRepo repository.EventRepository) EventService {
 }
 
 func (h event) AddEvent(event model.Event) (model.Event, error) {
-	fmt.Println(" AddEvent 111")
 	eventAdd, err := h.repository.AddEvent(event)
 	if err != nil {
 		fmt.Println(err)
