@@ -3,6 +3,7 @@ package handler
 import (
 	"Monitoring/eventService/event"
 	"Monitoring/eventService/model"
+	"Monitoring/uploader"
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
@@ -11,11 +12,12 @@ import (
 )
 
 type EventHandler struct {
-	event event.EventService
+	event    event.EventService
+	s3Upload *uploader.S3Uploader
 }
 
-func NewEventHandler(event event.EventService) *EventHandler {
-	return &EventHandler{event: event}
+func NewEventHandler(event event.EventService, s3 *uploader.S3Uploader) *EventHandler {
+	return &EventHandler{event: event, s3Upload: s3}
 }
 
 func (h *EventHandler) AddEvent(c *gin.Context) {
@@ -35,14 +37,22 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 	var savedFiles []string
 
 	for _, file := range uploadedFiles {
-		path := "uploads/" + file.Filename
-		if err := c.SaveUploadedFile(file, path); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file: " + file.Filename})
-			return
+		//path := "uploads/" + file.Filename
+		//if err := c.SaveUploadedFile(file, path); err != nil {
+		//	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file: " + file.Filename})
+		//	return
+		//}
+		key, path, err := h.s3Upload.UploadFile(file)
+		if err != nil {
+			fmt.Println(err)
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to upload file"})
 		}
-
-		savedFiles = append(savedFiles, file.Filename)
+		fmt.Println(key, path)
+		savedFiles = append(savedFiles, key)
 	}
+
+	signedUrl := h.s3Upload.Presigned(savedFiles)
+	fmt.Println("All signed Url ", signedUrl)
 
 	event.CreatedAt = time.Now().UTC()
 	event.Files = savedFiles
