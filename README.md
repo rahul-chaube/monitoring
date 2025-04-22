@@ -1,60 +1,106 @@
 
-# Monitoring Project - UserService Contribution
-
+# Monitoring Project - UserService Module Contribution
 ## Summary
-This contribution adds a complete UserService module to the monitoring system.
+This contribution delivers a complete **UserService** module as part of the Monitoring system, providing essential backend APIs to support frontend dashboard functionalities.
 
 ## Features
-- Gin-based API
+- - RESTful APIs built with **Gin** framework
+- **MongoDB** integration via environment variables
+- Modular architecture (routes, controllers, models, utils)
+- Email service integration using SMTP
+- FCM token management
+- Ready for expansion with AWS services (S3, SNS)
 - MongoDB connection using environment variable
 - Modular code (routes, controllers, models)
-- Ready to expand with AWS S3 or SNS
 
-## Setup
+## ⚙️ Setup Instructions
 
 ### Prerequisites
 - Go 1.18+
-- MongoDB (local or Atlas)
-- (Optional) AWS CLI
+- MongoDB (Local or Atlas)
+- (Optional) AWS CLI for future enhancements
 
-### Installation
+### Installation Steps
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/rahul-chaube/monitoring.git
+   cd monitoring
+   ```
+2. Copy `.env` file and configure:
+   - Set MongoDB URI
+   - Set SMTP credentials
+3. Install dependencies:
+   ```bash
+   go mod tidy
+   ```
+4. Start the server:
+   ```bash
+   go run main.go
+   ```
 
-1. Copy `.env` and update with your Mongo URI.
-2. Run `go mod tidy`
-3. Start server: `go run main.go`
+---
 
-## API Endpoints
+## 🚀 API Endpoints
 
-- `POST /register`
-- `POST /login`
-- `GET /user/:id`
+### 1️⃣ **User Registration**  
+`POST /user/register`  
+Registers a new user.
 
-# Monitoring Project - UserService Contribution
+### 2️⃣ **User Login**  
+`POST /user/login`  
+Authenticate user with email and password.
 
-## Summary
-This contribution adds a complete UserService module to the monitoring system.
+### 3️⃣ **Store Device Token**  
+`POST /user/device-token`  
+Update user's FCM token.
 
-## Features
-- Gin-based API
-- MongoDB connection using environment variable
-- Modular code (routes, controllers, models)
-- Ready to expand with AWS S3 or SNS
+### 4️⃣ **Get User by ID**  
+`GET /user/{id}`  
+Fetch user details.
 
-## Setup
+### 5️⃣ **Send Test Email**  
+`GET /user/send-test-email`  
+Trigger a test email.
 
-### Prerequisites
-- Go 1.18+
-- MongoDB (local or Atlas)
-- (Optional) AWS CLI
+_For detailed request/response samples, refer to the Postman collection._
 
-### Installation
+---
 
-1. Copy `.env` and update with your Mongo URI.
-2. Run `go mod tidy`
-3. Start server: `go run main.go`
+## 📂 Postman Collection
+- Use: `Monitoring_UserService_APIs.postman_collection.json`
+- Set `{{base_url}}` to your deployed server (e.g., `http://<EC2-IP>:8080`)
 
-## API Endpoints
+---
 
-- `POST /register`
-- `POST /login`
-- `GET /user/:id`
+## 🚀 Deployment Guide (AWS EC2)
+
+1. **SSH into EC2:**
+   ```bash
+   ssh -i "monitor-ec2.pem" ec2-user@<EC2-IP>
+   ```
+2. **Install Go:**
+   ```bash
+   sudo yum update -y
+   sudo yum install golang -y
+   ```
+3. **Clone & Run:**
+   ```bash
+   git clone https://github.com/rahul-chaube/monitoring.git
+   cd monitoring
+   go mod tidy
+   go run main.go
+   ```
+4. Ensure port **8080** is open in AWS Security Group.
+5. (Optional) Run in background:
+   ```bash
+   nohup go run main.go &
+   ```
+
+---
+
+## ✅ Notes
+- Configure `.env` properly (MongoDB, SMTP).
+- Use Postman for API testing.
+- Coordinate with frontend team for Dashboard API consumption.
+- For enhancements, contact backend team.
+
