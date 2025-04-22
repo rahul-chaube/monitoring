@@ -1,11 +1,11 @@
 package router
 
 import (
-	"Monitoring/common"
-	"Monitoring/eventService/event"
-	"Monitoring/eventService/handler"
-	"Monitoring/eventService/repository"
 	"github.com/gin-gonic/gin"
+	"github.com/rahul-chaube/monitoring/common"
+	"github.com/rahul-chaube/monitoring/eventService/event"
+	"github.com/rahul-chaube/monitoring/eventService/handler"
+	"github.com/rahul-chaube/monitoring/eventService/repository"
 )
 
 func SetupRouter() *gin.Engine {

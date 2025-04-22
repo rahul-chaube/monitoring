@@ -1,9 +1,10 @@
 package event
 
 import (
-	"Monitoring/eventService/model"
-	"Monitoring/eventService/repository"
 	"fmt"
+
+	"github.com/rahul-chaube/monitoring/eventService/model"
+	"github.com/rahul-chaube/monitoring/eventService/repository"
 )
 
 type EventService interface {

@@ -1,13 +1,14 @@
 package handler
 
 import (
-	"Monitoring/eventService/event"
-	"Monitoring/eventService/model"
 	"fmt"
-	"github.com/gin-gonic/gin"
 	"log"
 	"net/http"
 	"time"
+
+	"github.com/gin-gonic/gin"
+	"github.com/rahul-chaube/monitoring/eventService/event"
+	"github.com/rahul-chaube/monitoring/eventService/model"
 )
 
 type EventHandler struct {
