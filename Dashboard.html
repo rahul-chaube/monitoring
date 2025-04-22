@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>FCM Web Push</title>
+</head>
+<body>
+<h1>FCM Push Notification Setup</h1>
+<p>Check the console for your device token.</p>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-messaging-compat.js"></script>
+
+<script>
+    // Firebase config
+    const firebaseConfig = {
+        apiKey: "AIzaSyA55jHSEgbOycz9Y_vcrO0bx0wSw6Xx5wc",
+        authDomain: "monitor-614c1.firebaseapp.com",
+        projectId: "monitor-614c1",
+        storageBucket: "monitor-614c1.appspot.com",  // Fixed domain typo: should be appspot.com
+        messagingSenderId: "1086285248664",
+        appId: "1:1086285248664:web:1dff6c54eb37f193e238ed",
+        measurementId: "G-7MK3XR557S"
+    };
+
+    // Initialize Firebase
+    firebase.initializeApp(firebaseConfig);
+    const messaging = firebase.messaging();
+
+    // Register the service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/firebase-messaging-sw.js')
+            .then((registration) => {
+                console.log('✅ Service Worker registered');
+                // messaging.useServiceWorker(registration);
+                requestPermissionAndToken();
+            })
+            .catch((err) => {
+                console.error('Service Worker registration failed:', err);
+            });
+    }
+
+    function requestPermissionAndToken() {
+        Notification.requestPermission().then((permission) => {
+            if (permission === 'granted') {
+                messaging.getToken({
+                    vapidKey: 'BOcM8jEGNAEvy7APR6Yx_XkUT8z1nnsU3ojVavzrR41RYFJN7xxpi5EWc10A1GM3XTN8T4mFKXc9Gba1kVghMDE' // Replace this!
+                }).then((token) => {
+                    console.log('📲 FCM Token:', token);
+                    // 👉 Send token to your Go backend for later use
+                }).catch((err) => {
+                    console.error('🚫 Error getting token:', err);
+                });
+            } else {
+                console.warn('🚫 Permission denied for notifications');
+            }
+        });
+    }
+
+    // Handle messages in foreground
+    messaging.onMessage((payload) => {
+        console.log('📩 Foreground message received:', payload);
+        alert(`New notification: ${payload.notification.title} - ${payload.notification.body}`);
+    });
+</script>
+</body>
+</html>

@@ -17,11 +17,12 @@ func SetupRouter() *gin.Engine {
 			"message": "pong",
 		})
 	})
-
+	s3Uploader := uploader.NewS3Uploader("mytestingbucket0406")
 	eventMongoClient := common.MongoConnect("EventRepository")
 	eventRepo := repository.NewEventRepository(eventMongoClient)
 	eventService := event.NewEventService(eventRepo)
-	eventHandler := handler.NewEventHandler(eventService)
+	notification := notificationService.NewNotificationService()
+	eventHandler := handler.NewEventHandler(eventService, s3Uploader, notification)
 
 	eventGroup := r.Group("/event")
 	{
