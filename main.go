@@ -1,8 +1,31 @@
 package main
 
-import "Monitoring/router"
+import (
+	"log"
+
+	"github.com/rahul-chaube/monitoring/userService/config"
+	"github.com/rahul-chaube/monitoring/userService/routes"
+
+	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
+)
 
 func main() {
-	r := router.SetupRouter()
+	// Load environment variables
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using system environment variables")
+	}
+
+	// Connect to MongoDB
+	config.ConnectDB()
+
+	// Setup Gin router
+	r := gin.Default()
+
+	// Register User routes
+	routes.UserRoutes(r)
+
+	// Run server
 	r.Run(":8080")
 }
