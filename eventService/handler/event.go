@@ -3,6 +3,7 @@ package handler
 import (
 	"Monitoring/eventService/event"
 	"Monitoring/eventService/model"
+	"Monitoring/notificationService"
 	"Monitoring/uploader"
 	"fmt"
 	"github.com/gin-gonic/gin"
@@ -12,12 +13,13 @@ import (
 )
 
 type EventHandler struct {
-	event    event.EventService
-	s3Upload *uploader.S3Uploader
+	event        event.EventService
+	s3Upload     *uploader.S3Uploader
+	notification *notificationService.NotificationService
 }
 
-func NewEventHandler(event event.EventService, s3 *uploader.S3Uploader) *EventHandler {
-	return &EventHandler{event: event, s3Upload: s3}
+func NewEventHandler(event event.EventService, s3 *uploader.S3Uploader, service *notificationService.NotificationService) *EventHandler {
+	return &EventHandler{event: event, s3Upload: s3, notification: service}
 }
 
 func (h *EventHandler) AddEvent(c *gin.Context) {
@@ -54,6 +56,10 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 	signedUrl := h.s3Upload.Presigned(savedFiles)
 	fmt.Println("All signed Url ", signedUrl)
 
+	err = h.notification.SendMessage("cUIzEXTZXWN5p6P3-44Ywn:APA91bHsnCO-UzKygk0BI9EO9ngUSkQBFIAI8jJZY2Ydl0mQkf6g3YpfEkJmpho3KTMAfwrMcI8CnOd8a3zZLEGczG6iDzY3t-cVUDDvfhNuej3mo0Mqmgk", "Hello", "world")
+	if err != nil {
+		log.Println(err)
+	}
 	event.CreatedAt = time.Now().UTC()
 	event.Files = savedFiles
 

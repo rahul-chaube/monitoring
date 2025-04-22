@@ -5,6 +5,7 @@ import (
 	"Monitoring/eventService/event"
 	"Monitoring/eventService/handler"
 	"Monitoring/eventService/repository"
+	"Monitoring/notificationService"
 	"Monitoring/uploader"
 	"github.com/gin-gonic/gin"
 )
@@ -22,7 +23,8 @@ func SetupRouter() *gin.Engine {
 	eventMongoClient := common.MongoConnect("EventRepository")
 	eventRepo := repository.NewEventRepository(eventMongoClient)
 	eventService := event.NewEventService(eventRepo)
-	eventHandler := handler.NewEventHandler(eventService, s3Uploader)
+	notification := notificationService.NewNotificationService()
+	eventHandler := handler.NewEventHandler(eventService, s3Uploader, notification)
 
 	eventGroup := r.Group("/event")
 	{

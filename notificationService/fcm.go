@@ -2,51 +2,79 @@ package notificationService
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"fmt"
+	"golang.org/x/oauth2/google"
+	"io/ioutil"
 	"net/http"
-	"os"
+	"time"
 )
 
-const fcmURL = "https://fcm.googleapis.com/fcm/send"
-
-type NotificationPayload struct {
-	To           string                 `json:"to"`
-	Notification map[string]string      `json:"notification"`
-	Data         map[string]interface{} `json:"data,omitempty"`
+type NotificationService struct {
+	AccessToken string
 }
 
-func SendNotification(notification NotificationPayload) {
-	serverKey := os.Getenv("FCM_SERVER_KEY") // Keep secret in env
-	deviceToken := "YOUR_DEVICE_TOKEN_HERE"  // From frontend
-
-	payload := NotificationPayload{
-		To: deviceToken,
-		Notification: map[string]string{
-			"title": "🔥 Go Native FCM",
-			"body":  "Sent without third-party libs!",
-		},
-		Data: map[string]interface{}{
-			"customKey": "customValue",
-		},
-	}
-
-	payloadBytes, _ := json.Marshal(payload)
-
-	req, err := http.NewRequest("POST", fcmURL, bytes.NewBuffer(payloadBytes))
+func NewNotificationService() *NotificationService {
+	accessToken, err := getAccessToken()
 	if err != nil {
 		panic(err)
 	}
+	fmt.Println("access token:", accessToken)
+	return &NotificationService{
+		AccessToken: accessToken,
+	}
+}
 
-	req.Header.Set("Authorization", "key="+serverKey)
+func getAccessToken() (string, error) {
+	data, err := ioutil.ReadFile("./monitor-614c1-firebase-adminsdk-fbsvc-3921307ae5.json")
+	if err != nil {
+		return "", err
+	}
+
+	conf, err := google.JWTConfigFromJSON(data, "https://www.googleapis.com/auth/firebase.messaging")
+	if err != nil {
+		return "", err
+	}
+
+	token, err := conf.TokenSource(context.Background()).Token()
+	if err != nil {
+		return "", err
+	}
+
+	return token.AccessToken, nil
+}
+
+func (noti *NotificationService) SendMessage(deviceToken, title, messages string) error {
+	url := "https://fcm.googleapis.com/v1/projects/monitor-614c1/messages:send"
+
+	message := map[string]interface{}{
+		"message": map[string]interface{}{
+			"token": deviceToken,
+			"notification": map[string]string{
+				"title": title,
+				"body":  messages,
+			},
+		},
+	}
+
+	jsonBody, _ := json.Marshal(message)
+
+	req, _ := http.NewRequest("POST", url, bytes.NewBuffer(jsonBody))
+	req.Header.Set("Authorization", "Bearer "+noti.AccessToken)
 	req.Header.Set("Content-Type", "application/json")
-
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	client := &http.Client{Timeout: 10 * time.Second}
+	res, err := client.Do(req)
 	if err != nil {
-		panic(err)
+		return err
 	}
-	defer resp.Body.Close()
+	defer res.Body.Close()
 
-	fmt.Println("Response Status:", resp.Status)
+	if res.StatusCode != http.StatusOK {
+		body, _ := ioutil.ReadAll(res.Body)
+		return fmt.Errorf("FCM Error: %s", body)
+	}
+
+	fmt.Println("Push sent!")
+	return nil
 }
