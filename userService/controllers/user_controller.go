@@ -2,6 +2,7 @@ package controllers
 
 import (
 	"context"
+	"github.com/rahul-chaube/monitoring/util"
 	"log"
 	"net/http"
 	"time"
@@ -24,7 +25,7 @@ func RegisterUser(c *gin.Context) {
 		return
 	}
 
-	collection := config.GetCollection("users")
+	collection := config.GetCollection(util.UserRepository)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -81,7 +82,7 @@ func LoginUser(c *gin.Context) {
 		return
 	}
 
-	collection := config.GetCollection("users")
+	collection := config.GetCollection(util.UserRepository)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 
@@ -112,7 +113,7 @@ func StoreDeviceToken(c *gin.Context) {
 		return
 	}
 
-	collection := config.GetCollection("users")
+	collection := config.GetCollection(util.UserRepository)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 

@@ -11,15 +11,7 @@ import (
 	"github.com/rahul-chaube/monitoring/uploader"
 )
 
-func SetupRouter() *gin.Engine {
-
-	r := gin.Default()
-	r.RedirectTrailingSlash = false
-	r.GET("/ping", func(c *gin.Context) {
-		c.JSON(200, gin.H{
-			"message": "pong",
-		})
-	})
+func EventRoute(r *gin.Engine) {
 	s3Uploader := uploader.NewS3Uploader("mytestingbucket0406")
 	eventMongoClient := common.MongoConnect("EventRepository")
 	eventRepo := repository.NewEventRepository(eventMongoClient)
@@ -31,6 +23,6 @@ func SetupRouter() *gin.Engine {
 	{
 		eventGroup.POST("", eventHandler.AddEvent)
 		eventGroup.GET("/list", eventHandler.ListEvent)
+		eventGroup.GET("/:id", eventHandler.GetEvent)
 	}
-	return r
 }

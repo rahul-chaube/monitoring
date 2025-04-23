@@ -27,9 +27,15 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 	log.Println("Handler Add Event called ")
 	eventName := c.PostForm("eventName")
 	eventType := c.PostForm("eventType")
+	age := c.PostForm("age")
+
+	if eventType == "" || eventName == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event type and name"})
+	}
 	var event model.Event
 	event.EventName = eventName
-	event.EventType = eventType
+	event.EventType = model.EventType(eventType)
+	event.Age = age
 
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -40,11 +46,6 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 	var savedFiles []string
 
 	for _, file := range uploadedFiles {
-		//path := "uploads/" + file.Filename
-		//if err := c.SaveUploadedFile(file, path); err != nil {
-		//	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to save file: " + file.Filename})
-		//	return
-		//}
 		key, path, err := h.s3Upload.UploadFile(file)
 		if err != nil {
 			fmt.Println(err)
@@ -79,8 +80,36 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 func (h *EventHandler) ListEvent(c *gin.Context) {
 	log.Println("Handler All Event called ")
 	events, err := h.event.GetAllEvents()
+
+	for i := 0; i < len(events); i++ {
+		events[i] = h.UpdatePresignedUrl(events[i])
+	}
 	if err != nil {
 		fmt.Println(err)
 	}
 	c.JSON(200, events)
+}
+
+func (h *EventHandler) GetEvent(c *gin.Context) {
+	log.Println("Handler All Event called ")
+
+	eventId := c.Param("id")
+
+	if eventId == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "No event id"})
+		return
+	}
+	event, err := h.event.GetEventById(eventId)
+	if err != nil {
+		c.JSON(http.StatusNotFound, gin.H{"error": "Event not found"})
+		return
+	}
+	event = h.UpdatePresignedUrl(event)
+	c.JSON(200, event)
+
+}
+
+func (h *EventHandler) UpdatePresignedUrl(event model.Event) model.Event {
+	event.Files = h.s3Upload.Presigned(event.Files)
+	return event
 }

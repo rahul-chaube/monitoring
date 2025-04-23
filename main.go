@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 
+	er "github.com/rahul-chaube/monitoring/eventService/router"
 	"github.com/rahul-chaube/monitoring/userService/config"
 	"github.com/rahul-chaube/monitoring/userService/routes"
 
@@ -22,9 +23,11 @@ func main() {
 
 	// Setup Gin router
 	r := gin.Default()
+	r.RedirectTrailingSlash = false
 
 	// Register User routes
 	routes.UserRoutes(r)
+	er.EventRoute(r)
 
 	// Run server
 	r.Run(":8080")

@@ -12,7 +12,7 @@ import (
 
 type EventRepository interface {
 	AddEvent(event model.Event) (model.Event, error)
-	GetEventById(id int) (model.Event, error)
+	GetEventById(id string) (model.Event, error)
 	GetAllEvents() ([]model.Event, error)
 	UpdateEvent(event model.Event) (model.Event, error)
 	DeleteEventById(id int) error
@@ -37,9 +37,16 @@ func (e *eventRepositoryImpl) AddEvent(event model.Event) (model.Event, error) {
 	}
 	return event, nil
 }
-func (e *eventRepositoryImpl) GetEventById(id int) (model.Event, error) {
+func (e *eventRepositoryImpl) GetEventById(id string) (model.Event, error) {
+	ctx := context.Background()
 
-	return model.Event{}, nil
+	var event model.Event
+	err := e.collection.FindOne(ctx, bson.M{"_id": id}).Decode(&event)
+	if err != nil {
+		return model.Event{}, err
+	}
+
+	return event, nil
 }
 func (e *eventRepositoryImpl) GetAllEvents() ([]model.Event, error) {
 	ctx := context.Background()

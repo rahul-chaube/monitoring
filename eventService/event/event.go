@@ -9,7 +9,7 @@ import (
 
 type EventService interface {
 	AddEvent(event model.Event) (model.Event, error)
-	GetEventById(id int) (model.Event, error)
+	GetEventById(id string) (model.Event, error)
 	GetAllEvents() ([]model.Event, error)
 	UpdateEvent(event model.Event) (model.Event, error)
 	DeleteEventById(id int) error
@@ -33,8 +33,14 @@ func (h event) AddEvent(event model.Event) (model.Event, error) {
 	fmt.Println(eventAdd)
 	return event, nil
 }
-func (h event) GetEventById(id int) (model.Event, error) {
-	return model.Event{}, nil
+func (h event) GetEventById(id string) (model.Event, error) {
+	event, err := h.repository.GetEventById(id)
+	if err != nil {
+		fmt.Println(err)
+		return model.Event{}, err
+	}
+
+	return event, nil
 }
 func (h event) GetAllEvents() ([]model.Event, error) {
 	events, err := h.repository.GetAllEvents()
