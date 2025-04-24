@@ -113,3 +113,18 @@ func (h *EventHandler) UpdatePresignedUrl(event model.Event) model.Event {
 	event.Files = h.s3Upload.Presigned(event.Files)
 	return event
 }
+
+func (h *EventHandler) SendNotication(c *gin.Context) {
+	log.Println("Send Test Notification called ")
+
+	token := c.Param("token")
+
+	err := h.notification.SendMessage(token, "Test", "Test"+time.Now().String())
+	if err != nil {
+
+	}
+	c.JSON(200, gin.H{
+		"message": "Notification sent successfully",
+	})
+
+}

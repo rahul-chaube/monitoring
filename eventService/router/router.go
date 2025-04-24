@@ -23,6 +23,8 @@ func EventRoute(r *gin.Engine) {
 	{
 		eventGroup.POST("", eventHandler.AddEvent)
 		eventGroup.GET("/list", eventHandler.ListEvent)
+		eventGroup.GET("/notification/:token", eventHandler.SendNotication)
 		eventGroup.GET("/:id", eventHandler.GetEvent)
+
 	}
 }
