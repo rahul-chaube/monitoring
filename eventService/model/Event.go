@@ -13,12 +13,14 @@ const (
 )
 
 type Event struct {
-	EventId   string    `json:"eventId" bson:"_id"`
-	EventName string    `json:"eventName" bson:"eventName"`
-	EventType EventType `json:"eventType" bson:"eventType"`
-	Age       string    `json:"age" bson:"age"`
-	CreatedAt time.Time `json:"createdAt"`
-	Files     []string  `json:"files"`
+	EventId       string    `json:"eventId" form:"eventId" bson:"_id"`
+	Description   string    `json:"description" form:"description" bson:"description"`
+	DetectionType EventType `json:"detectionType" form:"detectionType" bson:"detectionType" binding:"required,oneof=gender_detection crowd_detection"`
+	Confidence    float32   `json:"confidence" form:"confidence" bson:"confidence"`
+	EventTime     time.Time `json:"-" bson:"eventTime"`
+	CreatedAt     time.Time `json:"-" bson:"createdAt"`
+	EventTimeStr  string    `form:"eventTime" binding:"required"`
+	Files         []string  `json:"files" bson:"files"`
 }
 
 func (e *Event) Validate() error {

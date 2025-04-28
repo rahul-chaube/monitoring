@@ -24,18 +24,23 @@ func NewEventHandler(event event.EventService, s3 *uploader.S3Uploader, service 
 }
 
 func (h *EventHandler) AddEvent(c *gin.Context) {
-	log.Println("Handler Add Event called ")
-	eventName := c.PostForm("eventName")
-	eventType := c.PostForm("eventType")
-	age := c.PostForm("age")
-
-	if eventType == "" || eventName == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid event type and name"})
-	}
 	var event model.Event
-	event.EventName = eventName
-	event.EventType = model.EventType(eventType)
-	event.Age = age
+	if err := c.ShouldBind(&event); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+
+	if event.Confidence < 0 {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "confidence is zero"})
+		return
+	}
+	// Parse EventTime
+	parsedEventTime, err := time.Parse(time.RFC3339, event.EventTimeStr)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid eventTime format. Expected RFC3339 format (e.g., 2025-04-28T15:04:05Z)"})
+		return
+	}
+	event.EventTime = parsedEventTime
 
 	form, err := c.MultipartForm()
 	if err != nil {
@@ -50,6 +55,7 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 		if err != nil {
 			fmt.Println(err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to upload file"})
+			return
 		}
 		fmt.Println(key, path)
 		savedFiles = append(savedFiles, key)
@@ -70,11 +76,14 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 		fmt.Println(err)
 	}
 
+	fmt.Printf("%+v", ev)
+	ev.Files = signedUrl
+
 	c.JSON(200, gin.H{
 		"message": "Event added successfully",
-		"files":   savedFiles,
 		"data":    ev,
 	})
+	return
 }
 
 func (h *EventHandler) ListEvent(c *gin.Context) {

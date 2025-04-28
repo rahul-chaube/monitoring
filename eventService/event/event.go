@@ -30,8 +30,7 @@ func (h event) AddEvent(event model.Event) (model.Event, error) {
 	if err != nil {
 		fmt.Println(err)
 	}
-	fmt.Println(eventAdd)
-	return event, nil
+	return eventAdd, nil
 }
 func (h event) GetEventById(id string) (model.Event, error) {
 	event, err := h.repository.GetEventById(id)
