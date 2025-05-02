@@ -22,6 +22,7 @@ func EventRoute(r *gin.Engine) {
 	eventGroup := r.Group("/event")
 	{
 		eventGroup.POST("", eventHandler.AddEvent)
+		eventGroup.GET("/static", eventHandler.GetDetectionTypePercentages)
 		eventGroup.GET("/list", eventHandler.ListEvent)
 		eventGroup.GET("/notification/:token", eventHandler.SendNotication)
 		eventGroup.GET("/:id", eventHandler.GetEvent)

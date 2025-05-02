@@ -13,6 +13,7 @@ type EventService interface {
 	GetAllEvents() ([]model.Event, error)
 	UpdateEvent(event model.Event) (model.Event, error)
 	DeleteEventById(id int) error
+	GetDetectionTypePercentages() ([]model.DetectionStats, error)
 }
 
 type event struct {
@@ -29,9 +30,20 @@ func (h event) AddEvent(event model.Event) (model.Event, error) {
 	eventAdd, err := h.repository.AddEvent(event)
 	if err != nil {
 		fmt.Println(err)
+		return model.Event{}, err
 	}
 	return eventAdd, nil
 }
+
+func (h event) GetDetectionTypePercentages() ([]model.DetectionStats, error) {
+	detectionsPercent, err := h.repository.GetDetectionTypePercentages()
+	if err != nil {
+		fmt.Println(err)
+		return nil, err
+	}
+	return detectionsPercent, nil
+}
+
 func (h event) GetEventById(id string) (model.Event, error) {
 	event, err := h.repository.GetEventById(id)
 	if err != nil {

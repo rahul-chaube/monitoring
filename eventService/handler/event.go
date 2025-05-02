@@ -79,8 +79,8 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 	fmt.Printf("%+v", ev)
 	ev.Files = signedUrl
 
-	messageId := notificationService.SendSMS()
-	fmt.Println("Message ID:", messageId)
+	//messageId := notificationService.SendSMS(event.DetectionType)
+	//fmt.Println("Message ID:", messageId)
 
 	c.JSON(200, gin.H{
 		"message": "Event added successfully",
@@ -98,8 +98,22 @@ func (h *EventHandler) ListEvent(c *gin.Context) {
 	}
 	if err != nil {
 		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
 	}
 	c.JSON(200, events)
+}
+
+func (h *EventHandler) GetDetectionTypePercentages(c *gin.Context) {
+	log.Println("Handler All Event called ")
+	detection, err := h.event.GetDetectionTypePercentages()
+
+	if err != nil {
+		fmt.Println(err)
+		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	c.JSON(200, detection)
 }
 
 func (h *EventHandler) GetEvent(c *gin.Context) {

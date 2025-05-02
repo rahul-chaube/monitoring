@@ -30,3 +30,9 @@ func (e *Event) Validate() error {
 	}
 	return nil
 }
+
+type DetectionStats struct {
+	DetectionType string  `json:"detectionType"`
+	Count         int     `json:"count"`
+	Percentage    float64 `json:"percentage"`
+}

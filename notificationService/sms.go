@@ -6,10 +6,11 @@ import (
 	"github.com/aws/aws-sdk-go-v2/aws"
 	"github.com/aws/aws-sdk-go-v2/config"
 	"github.com/aws/aws-sdk-go-v2/service/sns"
+	"github.com/rahul-chaube/monitoring/eventService/model"
 	"log"
 )
 
-func SendSMS() string {
+func SendSMS(eventType model.EventType) string {
 	ctx := context.Background()
 
 	// Load AWS configuration
@@ -21,7 +22,7 @@ func SendSMS() string {
 	snsClient := sns.NewFromConfig(cfg)
 	// Send SMS
 	phoneNumber := "+918976898022" // must include country code, e.g., +91 for India
-	message := "Hello from AWS SNS!"
+	message := "Hi This is aler from SafeShere we have detected " + string(eventType) + " event"
 
 	input := &sns.PublishInput{
 		Message:     aws.String(message),
