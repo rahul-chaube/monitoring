@@ -79,6 +79,9 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 	fmt.Printf("%+v", ev)
 	ev.Files = signedUrl
 
+	messageId := notificationService.SendSMS()
+	fmt.Println("Message ID:", messageId)
+
 	c.JSON(200, gin.H{
 		"message": "Event added successfully",
 		"data":    ev,
