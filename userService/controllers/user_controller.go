@@ -2,7 +2,6 @@ package controllers
 
 import (
 	"context"
-	"log"
 	"net/http"
 	"time"
 
@@ -59,11 +58,21 @@ func RegisterUser(c *gin.Context) {
 	}
 
 	// After inserting the new user into the database
-	err = utils.SendEmail(newUser.Email, "Welcome to Our Service", "Hello "+newUser.Name+",\n\nThank you for registering with us!")
-	if err != nil {
-		log.Printf("Failed to send welcome email: %v", err)
-		// Proceed without halting the registration process
-	}
+	// err = utils.SendEmail(newUser.Email, "Welcome to Our Service", "Hello "+newUser.Name+",\n\nThank you for registering with us!")
+	// if err != nil {
+	// 	log.Printf("Failed to send welcome email: %v", err)
+	// 	// Proceed without halting the registration process
+	// }
+	err = utils.SendTemplatedEmail(
+		newUser.Email,
+		"Welcome to Monitoring!",
+		utils.EmailTemplateData{
+			Subject: "Welcome to Monitoring",
+			Header:  "Thanks for joining, " + newUser.Name + "!",
+			Body:    "We’re excited to have you on board. Let us know if you need any help getting started.",
+		},
+		"templates/welcome_email.html", // 👈 use welcome template
+	)
 
 	response := models.UserCreateResponse{
 		Name:  newUser.Name,
@@ -145,4 +154,36 @@ func SendTestEmail(c *gin.Context) {
 func GetUserByID(c *gin.Context) {
 	userID := c.Param("id")
 	c.JSON(http.StatusOK, gin.H{"user_id": userID})
+}
+
+func SendForwardingEmail(c *gin.Context) {
+	var payload struct {
+		To      string `json:"to"`
+		Subject string `json:"subject"`
+		Header  string `json:"header"`
+		Body    string `json:"body"`
+	}
+
+	if err := c.ShouldBindJSON(&payload); err != nil {
+		utils.ErrorResponse(c, "Invalid request")
+		return
+	}
+
+	err := utils.SendTemplatedEmail(
+		payload.To,
+		payload.Subject,
+		utils.EmailTemplateData{
+			Subject: payload.Subject,
+			Header:  payload.Header,
+			Body:    payload.Body,
+		},
+		"templates/forwarding_email.html",
+	)
+
+	if err != nil {
+		utils.ErrorResponse(c, "Failed to send email: "+err.Error())
+		return
+	}
+
+	utils.SuccessResponse(c, "Templated email sent successfully", nil)
 }
