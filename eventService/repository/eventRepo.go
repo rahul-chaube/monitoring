@@ -52,7 +52,7 @@ func (e *eventRepositoryImpl) GetEventById(id string) (model.Event, error) {
 }
 func (e *eventRepositoryImpl) GetAllEvents() ([]model.Event, error) {
 	ctx := context.Background()
-	cursor, err := e.collection.Find(ctx, bson.M{})
+	cursor, err := e.collection.Find(ctx, bson.M{"detectionType": "gender_detection"})
 	if err != nil {
 		return nil, err
 	}
