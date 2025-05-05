@@ -3,7 +3,6 @@ package controllers
 import (
 	"context"
 	"github.com/rahul-chaube/monitoring/util"
-	"log"
 	"net/http"
 	"time"
 
