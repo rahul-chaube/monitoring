@@ -9,6 +9,8 @@ import (
 	"github.com/rahul-chaube/monitoring/userService/models"
 	"github.com/rahul-chaube/monitoring/userService/utils"
 
+	"fmt"
+
 	"github.com/gin-gonic/gin"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -63,16 +65,23 @@ func RegisterUser(c *gin.Context) {
 	// 	log.Printf("Failed to send welcome email: %v", err)
 	// 	// Proceed without halting the registration process
 	// }
-	err = utils.SendTemplatedEmail(
-		newUser.Email,
-		"Welcome to Monitoring!",
-		utils.EmailTemplateData{
-			Subject: "Welcome to Monitoring",
-			Header:  "Thanks for joining, " + newUser.Name + "!",
-			Body:    "We’re excited to have you on board. Let us know if you need any help getting started.",
-		},
-		"templates/welcome_email.html", // 👈 use welcome template
-	)
+
+	// Send email asynchronously (Go routine)
+	go func(email, name string) {
+		err := utils.SendTemplatedEmail(
+			email,
+			"Welcome to Monitoring!",
+			utils.EmailTemplateData{
+				Subject: "Welcome to Monitoring!",
+				Header:  "Hello, thanks for joining,  " + name + ", welcome aboard!",
+				Body:    "We’re excited to have you on board. Let us know if you need any help getting started.",
+			},
+			"templates/welcome_email.html", // use welcome template
+		)
+		if err != nil {
+			fmt.Printf("Failed to send welcome email: %v\n", err)
+		}
+	}(newUser.Email, newUser.Name)
 
 	response := models.UserCreateResponse{
 		Name:  newUser.Name,

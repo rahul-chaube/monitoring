@@ -41,23 +41,32 @@ func SendTemplatedEmail(to string, subject string, data EmailTemplateData, templ
 	tmpl, err := template.ParseFiles(templateFile)
 	//	tmpl, err := template.ParseFiles("templates/forwarding_email.html")
 	if err != nil {
-		return err
+		return fmt.Errorf("template parsing failed: %v", err)
 	}
 
 	var body bytes.Buffer
-	err = tmpl.Execute(&body, data)
-	if err != nil {
-		return err
+	if err := tmpl.Execute(&body, data); err != nil {
+		return fmt.Errorf("template execution failed: %v", err)
 	}
 
+	// Hardcoded SMTP credentials (for demo/dev)
+	smtpHost := "smtp.gmail.com"
+	smtpPort := "587"
+	smtpUser := "your-email@gmail.com"
+	smtpPass := "your-app-password"
+
+	auth := smtp.PlainAuth("", smtpUser, smtpPass, smtpHost)
 	msg := "MIME-version: 1.0;\nContent-Type: text/html; charset=\"UTF-8\";\n"
 	msg += fmt.Sprintf("Subject: %s\n\n%s", subject, body.String())
 
-	auth := smtp.PlainAuth("", os.Getenv("SMTP_USER"), os.Getenv("SMTP_PASS"), os.Getenv("SMTP_HOST"))
+	// If want to take from env variables:
+	// smtpUser = os.Getenv("SMTP_USER")
+	// auth = smtp.PlainAuth("", os.Getenv("SMTP_USER"), os.Getenv("SMTP_PASS"), os.Getenv("SMTP_HOST"))
+
 	return smtp.SendMail(
-		fmt.Sprintf("%s:%s", os.Getenv("SMTP_HOST"), os.Getenv("SMTP_PORT")),
+		fmt.Sprintf("%s:%s", smtpHost, smtpPort),
 		auth,
-		os.Getenv("SMTP_USER"),
+		smtpUser,
 		[]string{to},
 		[]byte(msg),
 	)

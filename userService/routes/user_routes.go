@@ -13,7 +13,7 @@ func UserRoutes(r *gin.Engine) {
 		userGroup.POST("/login", controllers.LoginUser)
 		userGroup.POST("/device-token", controllers.StoreDeviceToken)
 		userGroup.GET("/:id", controllers.GetUserByID)
-		userGroup.GET("/send-test-email", controllers.SendTestEmail)
-		userGroup.POST("/send-forwarding-email", controllers.SendForwardingEmail)
+		// userGroup.GET("/send-test-email", controllers.SendTestEmail)
+		// userGroup.POST("/send-forwarding-email", controllers.SendForwardingEmail)
 	}
 }

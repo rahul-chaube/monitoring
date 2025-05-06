@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -11,6 +10,7 @@ import (
 	"github.com/rahul-chaube/monitoring/eventService/model"
 	"github.com/rahul-chaube/monitoring/notificationService"
 	"github.com/rahul-chaube/monitoring/uploader"
+	"github.com/rahul-chaube/monitoring/userService/utils"
 )
 
 type EventHandler struct {
@@ -47,27 +47,47 @@ func (h *EventHandler) AddEvent(c *gin.Context) {
 		//}
 		key, path, err := h.s3Upload.UploadFile(file)
 		if err != nil {
-			fmt.Println(err)
+			log.Println("Upload error:", err)
 			c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to upload file"})
+			return
 		}
-		fmt.Println(key, path)
+		log.Println("Uploaded:", key, path)
 		savedFiles = append(savedFiles, key)
 	}
 
 	signedUrl := h.s3Upload.Presigned(savedFiles)
-	fmt.Println("All signed Url ", signedUrl)
+	log.Println("All signed URLs:", signedUrl)
 
-	err = h.notification.SendMessage("cUIzEXTZXWN5p6P3-44Ywn:APA91bHsnCO-UzKygk0BI9EO9ngUSkQBFIAI8jJZY2Ydl0mQkf6g3YpfEkJmpho3KTMAfwrMcI8CnOd8a3zZLEGczG6iDzY3t-cVUDDvfhNuej3mo0Mqmgk", "Hello", "world")
-	if err != nil {
-		log.Println(err)
-	}
+	_ = h.notification.SendMessage(
+		"cUIzEXTZXWN5p6P3-44Ywn:APA91bHsnCO-UzKygk0BI9EO9ngUSkQBFIAI8jJZY2Ydl0mQkf6g3YpfEkJmpho3KTMAfwrMcI8CnOd8a3zZLEGczG6iDzY3t-cVUDDvfhNuej3mo0Mqmgk",
+		"New Event Uploaded",
+		"An event was uploaded successfully.",
+	)
+
 	event.CreatedAt = time.Now().UTC()
 	event.Files = savedFiles
 
 	ev, err := h.event.AddEvent(event)
 	if err != nil {
-		fmt.Println(err)
+		log.Println("DB Save Error:", err)
 	}
+
+	// Send notification email asynchronously using Go routine
+	go func() {
+		err := utils.SendTemplatedEmail(
+			"recipient@example.com",
+			"New Event Uploaded",
+			utils.EmailTemplateData{
+				Subject: "New Event Notification",
+				Header:  "A new event was uploaded.",
+				Body:    "Check the dashboard to view uploaded event files and metadata.",
+			},
+			"templates/forwarding_email.html",
+		)
+		if err != nil {
+			log.Printf("Failed to send event notification email: %v\n", err)
+		}
+	}()
 
 	c.JSON(200, gin.H{
 		"message": "Event added successfully",
@@ -80,7 +100,7 @@ func (h *EventHandler) ListEvent(c *gin.Context) {
 	log.Println("Handler All Event called ")
 	events, err := h.event.GetAllEvents()
 	if err != nil {
-		fmt.Println(err)
+		log.Println("Fetch Error:", err)
 	}
 	c.JSON(200, events)
 }
